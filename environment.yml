@@ -2,7 +2,6 @@ name: anthropofree-env
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
   - nextflow>=22.10.0
   - fastp>=0.23.2
@@ -10,5 +9,8 @@ dependencies:
   - samtools>=1.17
   - seqkit>=2.4.0
   - python>=3.9
+  - pip
   - wget
-  
+  - pip:
+    - -e .
+    

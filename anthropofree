@@ -1,3 +1,5 @@
+#!/usr/bin/env nextflow
+
 nextflow.enable.dsl=2
 
 // Default Parameters
@@ -14,7 +16,7 @@ if (params.help) {
     Anthropofree - Human Read Removal Pipeline
     ==========================================
     Usage:
-    nextflow run main.nf --input_list list.csv --rawdata_dir ./reads [options]
+    anthropofree --input_list list.csv --rawdata_dir ./reads [options]
 
     Options:
     --parallel      Maximum number of samples to process in parallel (Default: ${params.parallel})
