@@ -1,0 +1,26 @@
+# Nextflow hidden files and directories
+.nextflow/
+.nextflow.log*
+
+# Nextflow work directory (intermediate task files)
+work/
+
+# Pipeline outputs (if you run tests in the same folder)
+results/
+
+# Reference data
+reference_genome/
+
+# Conda/Environment files
+bin/
+conda/
+*.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Temporary or log files
+*.log
+*.tmp
+human_ids.txt
