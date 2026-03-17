@@ -1,0 +1,118 @@
+#!/usr/bin/env nextflow
+
+nextflow.enable.dsl=2
+
+params.input_list  = null
+params.rawdata_dir = null
+params.index       = null
+params.outdir      = "results"
+params.parallel    = 8
+params.threads     = 4
+params.cleanup     = false // New cleanup option
+
+if (!params.input_list || !file(params.input_list).exists()) exit 1, "Missing input list"
+if (!params.rawdata_dir || !file(params.rawdata_dir).isDirectory()) exit 1, "Missing rawdata dir"
+
+process FASTP_QC {
+    tag "${sid}"
+    cpus params.threads
+    publishDir "${params.outdir}/readqc", mode: 'copy'
+
+    input:
+    tuple val(sid), path(reads)
+
+    output:
+    tuple val(sid), path("*.fastp.fastq.gz"), emit: qc_reads
+    path "${sid}.fastp.{json,html}"
+
+    script:
+    def is_paired = reads.size() == 2
+    if (is_paired) {
+        """
+        fastp --in1 ${reads[0]} --in2 ${reads[1]} \
+              --out1 ${sid}_1.fastp.fastq.gz --out2 ${sid}_2.fastp.fastq.gz \
+              --json ${sid}.fastp.json --html ${sid}.fastp.html \
+              --thread ${task.cpus} --detect_adapter_for_pe -q 25 --length_required 100
+        """
+    } else {
+        """
+        fastp --in1 ${reads[0]} \
+              --out1 ${sid}.fastp.fastq.gz \
+              --json ${sid}.fastp.json --html ${sid}.fastp.html \
+              --thread ${task.cpus} -q 25 --length_required 100
+        """
+    }
+}
+
+process REMOVE_HUMAN {
+    tag "${sid}"
+    cpus params.threads
+    publishDir "${params.outdir}/human_removed", mode: 'copy'
+
+    input:
+    tuple val(sid), path(reads)
+    val index_path
+
+    output:
+    tuple val(sid), path("*.clean.fastq.gz"), emit: clean_reads
+
+    script:
+    def is_paired = reads.size() == 2
+    if (is_paired) {
+        """
+        bowtie2 -p ${task.cpus} --very-sensitive -x ${index_path} -1 ${reads[0]} -2 ${reads[1]} | \
+        samtools view -F 12 | cut -f1 | sort -u > human_ids.txt
+
+        seqkit grep -v -f human_ids.txt ${reads[0]} | seqkit seq -i -o ${sid}_1.clean.fastq.gz
+        seqkit grep -v -f human_ids.txt ${reads[1]} | seqkit seq -i -o ${sid}_2.clean.fastq.gz
+        """
+    } else {
+        """
+        bowtie2 -p ${task.cpus} --very-sensitive -x ${index_path} -U ${reads[0]} | \
+        samtools view -F 4 | cut -f1 | sort -u > human_ids.txt
+
+        seqkit grep -v -f human_ids.txt ${reads[0]} | seqkit seq -i -o ${sid}.clean.fastq.gz
+        """
+    }
+}
+
+workflow {
+    ch_sample_list = Channel.fromPath(params.input_list)
+        .splitCsv(header: true, quote: '"')
+        .map { row -> 
+            def row_values = row.values()
+            def sid = row_values[0] 
+            def f1  = row_values[1]
+            def f2  = row_values.size() > 2 ? row_values[2] : null
+
+            def reads = []
+            if (f1) reads << file("${params.rawdata_dir}/${f1}")
+            if (f2 && f2.trim()) reads << file("${params.rawdata_dir}/${f2}")
+
+            for ( f in reads ) { if (!f.exists()) { log.warn "Missing: $f"; return null } }
+
+            return [ sid, reads ]
+        }
+        .filter { it != null }
+
+    FASTP_QC(ch_sample_list)
+    REMOVE_HUMAN(FASTP_QC.out.qc_reads, params.index)
+}
+
+workflow.onComplete {
+    if (params.cleanup && workflow.success) {
+        log.info "Pipeline completed successfully. Cleaning up work directory and logs..."
+        def workDir = file("${workflow.workDir}")
+        if (workDir.exists()) {
+            workDir.deleteDir()
+        }
+        // Remove Nextflow hidden files
+        file(".nextflow").deleteDir()
+        file(".nextflow.log").delete()
+        
+        // Use a wildcard to clean up older log rotations if they exist
+        file(".nextflow.log.*").each { it.delete() }
+    } else if (params.cleanup && !workflow.success) {
+        log.warn "Pipeline failed. Work directory preserved for debugging."
+    }
+}
