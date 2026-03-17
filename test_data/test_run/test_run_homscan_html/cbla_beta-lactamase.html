@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ResScan Visualisation: CblA beta-lactamase</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background-color: #121212; color: #e0e0e0; }
+        .container { max-width: 1200px; margin: auto; }
+        h1 { color: #ffffff; border-bottom: 2px solid #333; padding-bottom: 0.5em; }
+        h2 { color: #ffffff; margin-top: 2em; border-bottom: 1px solid #333; padding-bottom: 0.3em; display: flex; align-items: center; gap: 0.5em;}
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1em; margin: 1em 0; }
+        .stat-card { background-color: #1e1e1e; border-radius: 8px; padding: 1.2em; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #333; }
+        .stat-card h3 { margin: 0 0 0.5em 0; color: #aaa; font-size: 1em; font-weight: 600; }
+        .stat-card p { margin: 0; color: #ffffff; font-size: 1.6em; font-weight: 700; }
+        .chart-container { position: relative; width: 100%; margin-top: 1em; overflow-x: auto; padding: 1em; background-color: #000000; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #222; }
+        #tooltip { position: fixed; display: none; padding: 8px; background-color: rgba(0, 0, 0, 0.9); color: white; border-radius: 4px; font-size: 12px; pointer-events: none; white-space: pre; z-index: 1000; border: 1px solid #444; }
+        .axis-line, .tick { stroke: #555; stroke-width: 2; }
+        .tick-label { font-size: 10px; fill: #888; text-anchor: middle; }
+        .axis-label { font-size: 12px; font-weight: 600; fill: #aaa; text-anchor: middle; }
+        .aro-plot { margin-top: 3em; }
+        .legend { background-color: #1e1e1e; padding: 1em; border-radius: 8px; margin: 2em 0; display: flex; gap: 2em; align-items: center; flex-wrap: wrap; border: 1px solid #333; }
+        .legend h3 { margin: 0; padding-right: 1em; border-right: 1px solid #333; color: #fff; }
+        .legend-item { display: flex; align-items: center; gap: 0.5em; font-size: 0.9em; color: #ddd; }
+        .color-box { width: 15px; height: 15px; border-radius: 3px; border: 1px solid #444; }
+        #read-details-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: opacity 0.3s ease; }
+        #read-details-box { background-color: #1e1e1e; padding: 25px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); max-width: 1200px; max-height: 80vh; overflow-y: auto; position: relative; color: #eee; border: 1px solid #444; }
+        #read-details-box h3 { margin-top: 0; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px; font-size: 1.5em; }
+        #read-details-box .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; color: #aaa; }
+        #read-details-box table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        #read-details-box th, #read-details-box td { border: 1px solid #333; padding: 8px 12px; text-align: left; }
+        #read-details-box th { background-color: #252525; font-weight: 600; color: #fff; }
+        #read-details-box tr:nth-child(even) { background-color: #222; }
+        #read-details-box .highlight-row { background-color: #2c3e50 !important; font-weight: bold; color: #00ff41; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Coverage for Gene Family: CblA beta-lactamase</h1>
+        
+    <div class="legend">
+        <h3>PID: Protein</h3>
+        <div class="legend-item"><span class="color-box" style="background-color: #00ff41;"></span>100.0%</div>
+        <div class="legend-item"><span class="color-box" style="background-color: #ffcc00;"></span>< 100.0%</div>
+        <div class="legend-item" style="margin-left: 2em;"><span class="color-box" style="background-color: transparent; border: 1.5px solid #B8860B; box-shadow: 0 0 5px #FFD700;"></span>Unique Read</div>
+    </div>
+    
+        <div id="plots-container">
+    <section class="aro-plot" id="plot-ARO_3002999__CblA-1__H" data-aro-id="ARO_3002999__CblA-1__H">
+        <h2>ARO_3002999__CblA-1__H</h2>
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Reference Length</h3><p>891 bp</p></div>
+            <div class="stat-card"><h3>Reads Mapped</h3><p class="reads-mapped-count">3</p></div>
+            <div class="stat-card"><h3>Lateral Coverage</h3><p class="lateral-coverage-value">N/A</p></div>
+        </div>
+        <div class="chart-container">
+            <svg width="891" height="73" data-ref-len="891">
+                <defs><filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#FFD700" flood-opacity="0.8"/></filter></defs>
+                <rect x="47" y="10" width="150" height="8" fill="#00ff41" rx="1" stroke="#B8860B" stroke-width="1.5" filter="url(#goldGlow)" data-query-id="Query1__H__resistant_1_1"data-aro-matched="ARO_3002999__CblA-1__H"data-nuc-pid="100.00"data-prot-pid="100.00"data-pos-on-ref="47"data-aln-len="150"data-tooltip-short="Read: Query1__H__resistant_1_1 (UNIQUE)<br>Nuc PID: 100.00%<br>Prot PID: 100.00%" onmousemove="showTooltip(event)" onmouseout="hideTooltip()" onclick="showReadDetails(event, 'Query1__H__resistant_1_1')"></rect><rect x="47" y="0" width="150" height="8" fill="#00ff41" rx="1" stroke="#B8860B" stroke-width="1.5" filter="url(#goldGlow)" data-query-id="Query2__H__resistant_2_1"data-aro-matched="ARO_3002999__CblA-1__H"data-nuc-pid="100.00"data-prot-pid="100.00"data-pos-on-ref="47"data-aln-len="150"data-tooltip-short="Read: Query2__H__resistant_2_1 (UNIQUE)<br>Nuc PID: 100.00%<br>Prot PID: 100.00%" onmousemove="showTooltip(event)" onmouseout="hideTooltip()" onclick="showReadDetails(event, 'Query2__H__resistant_2_1')"></rect><rect x="215" y="10" width="150" height="8" fill="#00ff41" rx="1" stroke="#B8860B" stroke-width="1.5" filter="url(#goldGlow)" data-query-id="Query3__H__resistant_3_1"data-aro-matched="ARO_3002999__CblA-1__H"data-nuc-pid="100.00"data-prot-pid="100.00"data-pos-on-ref="215"data-aln-len="150"data-tooltip-short="Read: Query3__H__resistant_3_1 (UNIQUE)<br>Nuc PID: 100.00%<br>Prot PID: 100.00%" onmousemove="showTooltip(event)" onmouseout="hideTooltip()" onclick="showReadDetails(event, 'Query3__H__resistant_3_1')"></rect>
+                <line class="axis-line" x1="0" y1="30" x2="891" y2="30"></line><line class="tick" x1="0" y1="30" x2="0" y2="35"></line><text class="tick-label" x="0" y="47">0</text><line class="tick" x1="100" y1="30" x2="100" y2="35"></line><text class="tick-label" x="100" y="47">100</text><line class="tick" x1="200" y1="30" x2="200" y2="35"></line><text class="tick-label" x="200" y="47">200</text><line class="tick" x1="300" y1="30" x2="300" y2="35"></line><text class="tick-label" x="300" y="47">300</text><line class="tick" x1="400" y1="30" x2="400" y2="35"></line><text class="tick-label" x="400" y="47">400</text><line class="tick" x1="500" y1="30" x2="500" y2="35"></line><text class="tick-label" x="500" y="47">500</text><line class="tick" x1="600" y1="30" x2="600" y2="35"></line><text class="tick-label" x="600" y="47">600</text><line class="tick" x1="700" y1="30" x2="700" y2="35"></line><text class="tick-label" x="700" y="47">700</text><line class="tick" x1="800" y1="30" x2="800" y2="35"></line><text class="tick-label" x="800" y="47">800</text><text class="axis-label" x="445.5" y="63">Reference Position (bp)</text>
+            </svg>
+        </div>
+    </section>
+    </div>
+    </div>
+    <div id="tooltip"></div>
+    <div id="read-details-overlay"><div id="read-details-box"><span class="close-btn" onclick="hideReadDetails()">×</span><h3>Read Details: <span id="details-read-id"></span></h3><div id="details-content"></div></div></div>
+    
+    <script>
+        const allReadHits = {"Query1__H__resistant_1_1": [{"ARO_matched": "ARO_3002999__CblA-1__H", "AMR_Gene_Family": "CblA beta-lactamase", "nucleotide_pid": "100.00", "protein_pid": "100.00", "uniqueness": "UNIQUE", "position_on_ref": "47", "nucleotide_denominator": "150"}], "Query2__H__resistant_2_1": [{"ARO_matched": "ARO_3002999__CblA-1__H", "AMR_Gene_Family": "CblA beta-lactamase", "nucleotide_pid": "100.00", "protein_pid": "100.00", "uniqueness": "UNIQUE", "position_on_ref": "47", "nucleotide_denominator": "150"}], "Query3__H__resistant_3_1": [{"ARO_matched": "ARO_3002999__CblA-1__H", "AMR_Gene_Family": "CblA beta-lactamase", "nucleotide_pid": "100.00", "protein_pid": "100.00", "uniqueness": "UNIQUE", "position_on_ref": "215", "nucleotide_denominator": "150"}]};
+        const tooltip = document.getElementById('tooltip');
+        const readDetailsOverlay = document.getElementById('read-details-overlay');
+        const detailsReadIdSpan = document.getElementById('details-read-id');
+        const detailsContentDiv = document.getElementById('details-content');
+
+        function showTooltip(evt) {
+            const target = evt.target;
+            const tooltipText = target.getAttribute('data-tooltip-short');
+            if (!tooltipText) return;
+            tooltip.style.display = 'block';
+            tooltip.innerHTML = tooltipText.replace(/\n/g, '<br/>');
+            let x = evt.clientX + 15, y = evt.clientY + 15;
+            if (x + tooltip.offsetWidth > window.innerWidth) x = evt.clientX - tooltip.offsetWidth - 15;
+            if (y + tooltip.offsetHeight > window.innerHeight) y = evt.clientY - tooltip.offsetHeight - 15;
+            tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px';
+        }
+        function hideTooltip() { tooltip.style.display = 'none'; }
+
+        function showReadDetails(event, queryId) {
+            event.stopPropagation();
+            const hitsForThisRead = allReadHits[queryId];
+            if (!hitsForThisRead) return;
+            detailsReadIdSpan.textContent = queryId;
+            let contentHtml = '<p>This read mapped to the following AROs:</p><table><thead><tr><th>Gene Family</th><th>ARO</th><th>Nuc PID</th><th>Prot PID</th><th>Uniqueness</th><th>Pos</th><th>Len</th></tr></thead><tbody>';
+            const currentPlotAroId = event.target.closest('.aro-plot').getAttribute('data-aro-id');
+            hitsForThisRead.forEach(hit => {
+                let rowClassAttr = (hit.ARO_matched === currentPlotAroId) ? 'highlight-row' : '';
+                contentHtml += `<tr class="${rowClassAttr}"><td>${hit.AMR_Gene_Family}</td><td>${hit.ARO_matched}</td><td>${hit.nucleotide_pid}%</td><td>${hit.protein_pid}%</td><td>${hit.uniqueness}</td><td>${hit.position_on_ref}</td><td>${hit.nucleotide_denominator}</td></tr>`;
+            });
+            contentHtml += '</tbody></table>';
+            detailsContentDiv.innerHTML = contentHtml;
+            readDetailsOverlay.style.visibility = 'visible'; readDetailsOverlay.style.opacity = 1;
+        }
+
+        function hideReadDetails() {
+            readDetailsOverlay.style.opacity = 0;
+            setTimeout(() => { readDetailsOverlay.style.visibility = 'hidden'; }, 300);
+        }
+
+        function calculateLateralCoverage(plot) {
+            const svg = plot.querySelector('svg');
+            const refLength = parseInt(svg.getAttribute('data-ref-len'));
+            const rects = svg.querySelectorAll('rect');
+            if (refLength === 0) return '0.00%';
+            const coverageSet = new Set();
+            rects.forEach(rect => {
+                const start = parseInt(rect.getAttribute('data-pos-on-ref'));
+                const length = parseInt(rect.getAttribute('data-aln-len'));
+                for (let i = start; i < start + length; i++) coverageSet.add(i);
+            });
+            return ((coverageSet.size / refLength) * 100).toFixed(2) + '%';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.aro-plot').forEach(plot => {
+                plot.querySelector('.lateral-coverage-value').textContent = calculateLateralCoverage(plot);
+            });
+        });
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,4 @@
+#sample,fastq_1,fastq_2
+FILE1,FILE1_r1.fastq.gz,FILE1_r2.fastq.gz
+FILE2,FILE2_r1.fastq.gz
+FILE3,FILE3_r1.fastq.gz,FILE3_r2.fastq.gz

@@ -1,20 +1,20 @@
 # Anthropofree v.1.0.0
 
-A high-performance Nextflow pipeline for the automated removal of human DNA contaminants (dehosting) from metagenomic sequencing data. Anthropofree is a robust, scalable workflow designed to transform raw metagenomic reads into "clean," non-human datasets. It streamlines quality control, host alignment, and read filtering into a single automated command.
+A high-performance Nextflow pipeline for the automated removal of human DNA contaminants (dehosting) from metagenomic sequencing data. Anthropofree transforms raw reads into "clean," non-human datasets by streamlining quality control, host alignment, and read filtering into a single automated command.
 
 ## Features
 
-*   **Sensitive Dehosting:** Uses `bowtie2` in `--very-sensitive` mode to ensure maximum detection of human reads.
-*   **High-Fidelity QC:** Leverages `fastp` for adapter trimming and quality filtering ($Q > 25$).
-*   **Granular Resource Control:** Directly control sample concurrency (`--parallel`) and per-task threading (`--threads`).
-*   **Flexible Hosting:** Point to any host index (Human, Mouse, etc.) without modifying the code.
-*   **Smart Resumption:** Built-in check-pointing; use `-resume` to restart from the last successful step.
+* **Hybrid Library Support:** Automatically detects and processes both **Paired-End** and **Single-End** libraries within the same run.
+* **Sensitive Dehosting:** Uses `bowtie2` in `--very-sensitive` mode for maximum detection of host reads.
+* **High-Fidelity QC:** Leverages `fastp` for adapter trimming and quality filtering ($Q > 25$).
+* **Flexible Hosting:** Point to any host index (Human, Mouse, Rat, etc.) without modifying the code.
+* **Automatic Cleanup:** Optional flag to wipe temporary `work/` and log files upon successful completion to save disk space.
+
+---
 
 ## Installation
 
-Anthropofree is designed to be installed into a Conda environment for easy dependency management.
-
-### 1. Clone and Enter the Repo
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/hsgweon/anthropofree.git
 cd anthropofree
@@ -24,11 +24,15 @@ cd anthropofree
 ```bash
 conda env create -f environment.yml
 conda activate anthropofree-env
+pip install -e .
 ```
+
+---
 
 ## Database Preparation
 
-Before running the pipeline, you must have a Bowtie2 index for the human genome. You can download and prepare the GRCh38 index from NCBI:
+### 1. Human Genome (Pre-built)
+If you are dehosting human reads, you can download the pre-built GRCh38 index:
 
 ```bash
 mkdir -p human_index
@@ -36,22 +40,57 @@ wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_G
 tar -xvf *.tar.gz -C human_index
 ```
 
+### 2. Custom Host Databases (Example: Rat)
+Anthropofree is host-agnostic. To remove DNA from a different species, you must download the FASTA and build a Bowtie2 index.
+
+**Example: Building a Rat (*Rattus norvegicus*) index**
+
+1.  **Download the FASTA:**
+    ```bash
+    mkdir -p rat_index
+    wget -P rat_index/ https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/015/227/675/GCF_015227675.2_mRatBN7.2/GCF_015227675.2_mRatBN7.2_genomic.fna.gz
+    gunzip rat_index/*.gz
+    ```
+
+2.  **Build the Index:**
+    ```bash
+    # Usage: bowtie2-build <reference_fasta> <index_base_name>
+    bowtie2-build --threads 16 rat_index/GCF_015227675.2_mRatBN7.2_genomic.fna rat_index/rat_mRatBN7
+    ```
+
+3.  **Run the Pipeline:**
+    Point the `--index` flag to the newly created index base:
+    ```bash
+    anthropofree --input_list samplesheet.csv --rawdata_dir ./fastq --index rat_index/rat_mRatBN7
+    ```
+
+---
+
 ## Usage
 
 ### 1. Prepare your Samplesheet
-Anthropofree uses a simple comma-separated (`.csv`) file:
-*   **Column 1:** Sample Name (e.g., `Patient_A`)
-*   **Column 2:** SRR or Library ID (e.g., `SRR12345`)
+The pipeline maps files based on their position in the row. This ensures it works regardless of naming conventions.
 
-### 2. Run the Pipeline
-> **Note:** Use the base name of your Bowtie2 index (the part before `.1.bt2`).
+| Column 1 (sample) | Column 2 (fastq_1) | Column 3 (fastq_2) |
+| :--- | :--- | :--- |
+| Sample_01 | P01_R1.fastq.gz | P01_R2.fastq.gz |
+| Sample_02 | P02_single.fastq.gz | *(Leave empty for SE)* |
 
+**Example `samplesheet.csv`:**
+```csv
+sample,fastq_1,fastq_2
+Patient_A,A_R1.fq.gz,A_R2.fq.gz
+Patient_B,B_single.fq.gz,
+```
+
+### 2. Run the Command
 ```bash
-anthropofree --input_list samples.csv \
-             --rawdata_dir /path/to/fastqs \
+anthropofree --input_list samplesheet.csv \
+             --rawdata_dir ./fastq \
              --index human_index/GCA_000001405.15_GRCh38_full_analysis_set.fna.bowtie_index \
              --parallel 10 \
-             --threads 16
+             --threads 16 \
+             --cleanup true
 ```
 
 ---
@@ -60,14 +99,14 @@ anthropofree --input_list samples.csv \
 
 | Flag | Description | Default |
 | :--- | :--- | :--- |
-| `--input_list` | **Required.** Path to CSV file [SampleName, ID]. | `null` |
-| `--rawdata_dir` | **Required.** Directory where raw FASTQ files are stored. | `null` |
-| `--index` | **Required.** Path to Bowtie2 index base (e.g., `/db/hg38/base_name`). | `null` |
+| `--input_list` | **Required.** Path to CSV [sample, fastq_1, fastq_2]. | `null` |
+| `--rawdata_dir` | **Required.** Directory containing the FASTQ files. | `null` |
+| `--index` | **Required.** Path to Bowtie2 index base. | `null` |
 | `--parallel` | Max number of samples to process simultaneously. | `8` |
-| `--threads` | CPUs to allocate to each sample. | `4` |
+| `--threads` | CPUs to allocate to each task (fastp/bowtie2). | `4` |
 | `--outdir` | Directory to save cleaned reads and QC reports. | `results` |
-| `-resume` | Re-run the pipeline skipping completed steps. | `N/A` |
-| `--help` | Display the help menu. | `N/A` |
+| `--cleanup` | If `true`, deletes `work/` and logs on success. | `false` |
+| `-resume` | Restart pipeline skipping completed steps. | `N/A` |
 
 ---
 
@@ -76,7 +115,7 @@ anthropofree --input_list samples.csv \
 | Directory | Content |
 | :--- | :--- |
 | `results/readqc/` | Trimmed FASTQ files and `fastp` HTML/JSON reports. |
-| `results/human_removed/` | **The Final Product:** FASTQ files with human reads removed. |
+| `results/human_removed/` | **The Final Product:** FASTQ files with host reads removed. |
 
 ---
 
@@ -85,7 +124,3 @@ This project is licensed under the MIT License.
 
 ## Contact
 For questions or to report issues, please open an issue on the GitHub repository.
-
----
-
-*Would you like me to help you create a `nextflow.config` file so users can store their index path permanently? This would allow them to run the pipeline without typing the long `--index` path every time.*

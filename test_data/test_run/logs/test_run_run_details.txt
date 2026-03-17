@@ -1,0 +1,19 @@
+AMRscan Pipeline Run Details
+------------------------------
+Pipeline Version: 1.0.0
+Date and Time: 2026-03-12 21:30:16
+Command-line: /data-ext4/xc917132/applications/miniconda3/envs/resscan-env/bin/resscan -i test.fastq.gz -o test_run -t 16 --card-db-dir /home/xc917132/xfs/prj/tmp/resscan_CARD_v4.0.1 --overwrite
+
+--- System & Tool Information ---
+Python Version: 3.14.3
+BWA Version: 0.7.17-r1198-dirty
+Diamond Version: 2.1.24
+pip Version: 26.0.1
+setuptools Version: Not Found
+pandas Version: 3.0.1
+numpy Version: 2.4.2
+
+--- Databases Used ---
+CARD FASTA: /data-xfs/xc917132/prj/tmp/resscan_CARD_v4.0.1/resscan_DB_CARD_NR_all_nuc.fasta
+CARD Metadata: /data-xfs/xc917132/prj/tmp/resscan_CARD_v4.0.1/resscan_DB_CARD_NR_metadata.txt
+SCG FASTA: /data-xfs/xc917132/prj/tmp/resscan/resscan/databases/resscan_DB_SCG/SCG.fasta
